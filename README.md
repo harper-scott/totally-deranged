@@ -1,2 +1,2 @@
 # totally-deranged
-Gap and Magma code for paper "Totally deranged elements of almost simple groups and invariable generation"
+Gap and Magma code for the paper "Totally deranged elements of almost simple groups and invariable generation"
