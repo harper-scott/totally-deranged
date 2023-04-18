@@ -1,0 +1,136 @@
+// Magma code for:
+// 
+// "Totally deranged elements of almost simple groups 
+// and invariable generation"
+//
+// Scott Harper
+
+
+// preliminaries
+
+// in all cases, "group" means "GrpPerm"
+
+// FixedPointRatio
+// input: group G, subgroup H, element g
+// output: fixed point ratio of g on G/H
+
+FixedPointRatio:= function( G, H, g )
+   count:=0;
+   classreps:=Classes(H);
+   for rep in classreps do
+      if (rep[1] eq Order(g)) then
+         if (IsConjugate(G,g,rep[3])) then
+            count:=count+rep[2];
+         end if;
+      end if;
+   end for;
+   return count*Order(Centraliser(G,g))/Order(G);
+end function;
+
+// NotTotallyDeranged
+// input: almost simple group G, with socle T, element s
+// output: true iff s is not totally deranged in G
+
+NotTotallyDeranged:= function( G, T, s )
+   success:=false;
+   maxes:=MaximalSubgroups(G : OrderMultipleOf:=Order(s));   
+   for M in maxes do
+      H:=M`subgroup;
+      if Socle(H) ne T then
+         count:=FixedPointRatio(G,H,s)*Order(G)/Order(H);
+         if (count ne 0) then
+            success:=true;
+            break;
+         end if;
+      end if;
+   end for;
+   return success;
+end function;
+
+// NoTotallyDeranged
+// input: almost simple group G, with socle T
+// output: true iff G has no totally deranged elements
+
+NoTotallyDeranged:= function( G, T )
+  failure:=false;
+  cl:=Classes(G);
+  k:=#cl;
+  for i in [1..k] do
+    s:=cl[i][3];
+    check:=NotTotallyDeranged(G,T,s);
+    if check eq false then
+      failure:=true;
+      break;
+    end if;
+  end for;
+  return not failure;
+end function;
+
+// NoTotallyDerangedGroups
+// input: tuple of inputs for "AutomorphismGroupSimpleGroup"
+// output: true iff none of these groups have totally deranged elements
+
+NoTotallyDerangedGroups:= function( X )
+  failure:=false;
+  for x in X do
+    if #x eq 1 then
+      A:=AutomorphismGroupSimpleGroup(x[1]);
+    elif #x eq 2 then
+      A:=AutomorphismGroupSimpleGroup(x[1],x[2]);
+    else
+      A:=AutomorphismGroupSimpleGroup(x[1],x[2],x[3]);
+    end if;
+    T:=Socle(A);
+    N:=NormalSubgroups(A);
+    n:=#N;
+    for i in [2..n] do
+      G:=N[i]`subgroup;
+      check:=NoTotallyDeranged(G, T);
+      if check eq false then
+        failure:=true;
+        break x;
+      end if;
+    end for;
+  end for;
+  return not failure;
+end function;
+
+
+// main code
+
+X:=<
+<"G2", 3>, 
+<"U", 5, 2>,
+<"U", 3, 4>,
+<"U", 3, 3>,
+<"L", 4, 3>,
+<"L", 4, 2>,
+<"L", 3, 3>,
+<"L", 3, 2>,
+<"L", 2, 9>,
+<"L", 2, 8>,
+<"L", 2, 7>,
+<"L", 2, 5>,
+<"L", 2, 4>,
+<"A", 6>,
+<"2F4", 2>
+>;
+
+NoTotallyDerangedGroups(X);
+
+// special case
+
+A:=AutomorphismGroupSimpleGroup("L",3,4);
+T:=Socle(A);
+Q,f:=quo<A|T>;
+S:=Subgroups(Q);
+failure:=false;
+for i in [1..10] do
+  G:=(S[i]`subgroup @@ f);
+  check:=NoTotallyDeranged(G, T);
+  if check eq false then
+    failure:=true;
+    break i;
+  end if;
+end for;
+not failure;

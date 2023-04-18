@@ -1,0 +1,68 @@
+# GAP code for:
+# 
+# "Totally deranged elements of almost simple groups 
+#  and invariable generation"
+#
+# Scott Harper
+
+
+# preliminaries
+
+# in all cases, "group" means a "Character Table Name"
+
+LoadPackage( "AtlasRep" );
+LoadPackage( "CTblLib" );
+LoadPackage( "TomLib" );
+
+# MaximalOvergroups
+# input: group G, element s
+# output: list of pairs [H, k] where H represents a conjugacy class
+#         of maximal subgroups of G and k is the number of conjugates 
+#         of H which contain s.
+
+MaximalOvergroups:= function( G, s )
+  local tbl, mx, prim, spos, nonz, j, results;
+
+  tbl:= CharacterTable( G );
+  mx:= List( Maxes(tbl), CharacterTable );
+  prim:= List( mx, x -> TrivialCharacter( x )^tbl );
+  spos:= Position( AtlasClassNames( tbl ), s );
+  nonz:= PositionsProperty( prim, pi -> pi[spos] <> 0 );
+
+  results:= [];
+  for j in nonz do
+    Add(results, [ Identifier(mx[j]), prim[j][ spos ] ]);
+  od;
+  
+  return results;
+end;
+
+
+# main code
+
+groups:=[
+"M12.2", 
+"M22.2", 
+"J2.2", 
+"J3.2", 
+"HS.2", 
+"Suz.2", 
+"McL.2", 
+"He.2", 
+"ON.2", 
+"Fi22.2", 
+"Fi24'.2", 
+"HN.2"
+];
+
+for G in groups do
+  Print(G, "\n");
+  tbl:= CharacterTable( G );
+  names:= AtlasClassNames( tbl );
+  for s in names do
+    overgrps:=MaximalOvergroups(G, s);
+    if Length(overgrps) = 1 then
+      Print(s, " ", overgrps, "\n");
+    fi;
+  od;
+od;
